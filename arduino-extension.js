@@ -33,43 +33,64 @@
         
         //if(poller) poller = clearInterval(poller);
         device = null;
+        
+        // Try to connect to another device
         tryNextDevice();
     };
 
+    function processSerialInput(buffer) {
+        
+    }
+    
     // Tries to open the next connected device
-  function tryNextDevice() {
-    device = potentialDevices.shift();
-    if (!device) return;
+    var pingTimeoutHandler = null;
+    function tryNextDevice() {
+        device = potentialDevices.shift();
+        if (!device) return;
 
-    device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0 });
-    console.log('Attempting connection with ' + device.id);
-    device.set_receive_handler(function(data) {
-      var inputData = new Uint8Array(data);
-//      processInput(inputData);
-    });
+        device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0 });
+        console.log('Attempting connection with ' + device.id);
 
+        //
+        // Look for "PONG" in our first response
+        // If we don't receive that, disconnect and try the next device.  If we do receive that, then update our receive handler
+        //
+        device.set_receive_handler(function(data) {
+            var inputData = new Uint8Array(data);
+            if (inputData[0] == 'P' && inputData[1] == 'O' && inputData[2] == 'N' && inputData[3] == 'G') {
+                console.log('Successfully connected to ' + device.id);
+                clearTimeout(pingTimeoutHandler);
+                pingTimeoutHandler = null;
+                device.set_receive_handler(function(data) {
+                    processSerialInput(data);
+                });
+            } 
+        });
+
+        // Send a PING command to try and elicit a PING response (PONG)
+        device.write(0x01);
 /*
     poller = setInterval(function() {
       queryFirmware();
     }, 1000);
-
-    watchdog = setTimeout(function() {
-      clearInterval(poller);
-      poller = null;
-      device.set_receive_handler(null);
-      device.close();
-      device = null;
-      tryNextDevice();
-    }, 5000);
-    */
-  }
+*/
+        // Set up a timeout to disconnect if we don't get a PING response
+        pingTimeoutHandler = setTimeout(function() {
+            console.log('Connection to ' + device.id + ' failed.  Trying next device.');
+            device.set_receive_handler(null);
+            device.close();
+            device = null;
+            tryNextDevice();
+        }, 5000);
+    }
 
     // Cleanup function when the extension is unloaded
-  ext._shutdown = function() {
-    // TODO: Bring all pins down 
-    if (device) device.close();
-    device = null;
-  };    
+     ext._shutdown = function() {
+         // TODO: Bring all pins down 
+        if (device) device.close();
+        device = null;
+    };  
+
     // Block and block menu descriptions
     var descriptor = {
         blocks: [
