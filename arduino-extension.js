@@ -94,7 +94,7 @@
   ext.stepMotor = function(steps, direction) {
     
     for (i = 0; i < steps; i++) {
-      switch (currentStep) {
+      switch (stepNumber) {
           case 0:
             ext.digitalWrite(MOTOR_PIN_1, 'on');
             ext.digitalWrite(MOTOR_PIN_2, 'off');
@@ -147,14 +147,14 @@
             break;
         }
         if (direction === 'clockwise') {
-          currentStep += 1;
+          stepNumber += 1;
         } else {
-          currentStep -= 1;
+          stepNumber -= 1;
         }
-        if (currentStep == 8) {
-          currentStep = 0;
-        } else if (currentStep == -1) {
-          currentStep = 7;
+        if (stepNumber == 8) {
+          stepNumber = 0;
+        } else if (stepNumber == -1) {
+          stepNumber = 7;
         }
     }
   }
