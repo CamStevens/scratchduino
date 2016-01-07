@@ -3,6 +3,11 @@
   var START_MSG = 0xF0;
   var END_MSG = 0xF7;
 
+  var MOTOR_PIN_1 = 9;
+  var MOTOR_PIN_2 = 10;
+  var MOTOR_PIN_3 = 11;
+  var MOTOR_PIN_4 = 12;
+  
   var parsingMsg = false;
   var msgBytesRead = 0;
   var storedMsg = new Uint8Array(1024);
@@ -20,8 +25,10 @@
   pingCmd[0] = 1;
 
   var inputVals = { d0: 0, a0: 0, a1: 0 };
-  var outputPins = { d1: 1, d5: 5, d9: 9 };
+  var outputPins = { d2: 2, d3: 3, d5: 5, d9: 9, d10: 10, d11: 11, d12: 12 };
 
+  var stepNumber = 0;
+  
   function processMsg() {
     inputVals.d0 = storedMsg[0] | (storedMsg[1] << 0x08);
     inputVals.a0 = storedMsg[2] | (storedMsg[3] << 0x08);
@@ -83,6 +90,67 @@
     output[4] = blue;
     device.send(output.buffer);
   };
+  
+  ext.stepMotor = function() {
+    switch (currentStep) {
+        case 0:
+          ext.digitalWrite(MOTOR_PIN_1, 'on');
+          ext.digitalWrite(MOTOR_PIN_2, 'off');
+          ext.digitalWrite(MOTOR_PIN_3, 'off');
+          ext.digitalWrite(MOTOR_PIN_4, 'off');
+          break;
+        case 1:
+          ext.digitalWrite(MOTOR_PIN_1, 'on');
+          ext.digitalWrite(MOTOR_PIN_2, 'on');
+          ext.digitalWrite(MOTOR_PIN_3, 'off');
+          ext.digitalWrite(MOTOR_PIN_4, 'off');
+          break;
+        case 2:
+          ext.digitalWrite(MOTOR_PIN_1, 'off');
+          ext.digitalWrite(MOTOR_PIN_2, 'on');
+          ext.digitalWrite(MOTOR_PIN_3, 'off');
+          ext.digitalWrite(MOTOR_PIN_4, 'off');
+          break;
+        case 3:
+          ext.digitalWrite(MOTOR_PIN_1, 'off');
+          ext.digitalWrite(MOTOR_PIN_2, 'on');
+          ext.digitalWrite(MOTOR_PIN_3, 'on');
+          ext.digitalWrite(MOTOR_PIN_4, 'off');
+          break;
+        case 4:
+          ext.digitalWrite(MOTOR_PIN_1, 'off');
+          ext.digitalWrite(MOTOR_PIN_2, 'off');
+          ext.digitalWrite(MOTOR_PIN_3, 'on');
+          ext.digitalWrite(MOTOR_PIN_4, 'off');
+          break;
+        case 5:
+          ext.digitalWrite(MOTOR_PIN_1, 'off');
+          ext.digitalWrite(MOTOR_PIN_2, 'off');
+          ext.digitalWrite(MOTOR_PIN_3, 'on');
+          ext.digitalWrite(MOTOR_PIN_4, 'on');
+          break;
+        case 6:
+          ext.digitalWrite(MOTOR_PIN_1, 'off');
+          ext.digitalWrite(MOTOR_PIN_2, 'off');
+          ext.digitalWrite(MOTOR_PIN_3, 'off');
+          ext.digitalWrite(MOTOR_PIN_4, 'on');
+          break;
+        case 7:
+          ext.digitalWrite(MOTOR_PIN_1, 'on');
+          ext.digitalWrite(MOTOR_PIN_2, 'off');
+          ext.digitalWrite(MOTOR_PIN_3, 'off');
+          ext.digitalWrite(MOTOR_PIN_4, 'on');
+          break;
+        default:
+          break;
+      }
+      currentStep += 1;
+      if (currentStep == 8) {
+        currentStep = 0;
+      } else if (currentStep == -1) {
+        currentStep = 7;
+      }    
+  }
   
   ext.whenAnalogRead = function(pin, op, val) {
     if (op === '>')
