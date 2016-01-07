@@ -1,118 +1,181 @@
 (function(ext) {
-    var device = null;
-    var connected = false;
-    
-    // Status reporting code
-    // Use this to report missing hardware, plugin or unsupported browser
-    ext._getStatus = function() {
-        if(!connected) return {status: 1, msg: 'Device not connected'};
-        return {status: 2, msg: 'Device connected'};
-    }   
 
-    ext.my_first_block = function() {
-        // Code that gets executed when the block is run
-    };
+  var START_MSG = 0xF0;
+  var END_MSG = 0xF7;
 
-    // Handle devices when they are connected.  If we don't have an open device, go ahead and open one
-    var potentialDevices = [];
-    ext._deviceConnected = function(dev) {
-        potentialDevices.push(dev);
+  var parsingMsg = false;
+  var msgBytesRead = 0;
+  var storedMsg = new Uint8Array(1024);
 
-        // If we're already connected to a device, just return
-        if (device) {
-            return;
+  var connected = false;
+  var device = null;
+  var poller = null;
+
+  /* TEMPORARY WORKAROUND
+     this is needed since the _deviceRemoved method
+     is not called when serial devices are unplugged*/
+  var sendAttempts = 0;
+
+  var pingCmd = new Uint8Array(1);
+  pingCmd[0] = 1;
+
+  var inputVals = { d0: 0, a0: 0, a1: 0 };
+  var outputPins = { d1: 1, d5: 5, d9: 9 };
+
+  function processMsg() {
+    inputVals.d0 = storedMsg[0] | (storedMsg[1] << 0x08);
+    inputVals.a0 = storedMsg[2] | (storedMsg[3] << 0x08);
+    inputVals.a1 = storedMsg[4] | (storedMsg[5] << 0x08);
+  }
+
+  function processInput(data) {
+    for (var i=0; i < data.length; i++) {
+      if (parsingMsg) {
+        if (data[i] == END_MSG) {
+          parsingMsg = false;
+          processMsg();
+        } else {
+          storedMsg[msgBytesRead++] = data[i];
         }
-        
-        // Since no device is connected, try to connect to the newly discovered device
-        tryNextDevice();
-    }
-
-    // Handle when a device is disconnected
-    ext._deviceRemoved = function(dev) {
-        
-        // Ignore the disconnect if it is not the device we are connected to
-        if(device != dev) return;
-        
-        //if(poller) poller = clearInterval(poller);
-        device = null;
-        
-        // Try to connect to another device
-        tryNextDevice();
-    };
-
-    function processSerialInput(buffer) {
-        
-    }
-    
-    // Tries to open the next connected device
-    var pingTimeoutHandler = null;
-    function tryNextDevice() {
-        device = potentialDevices.shift();
-        if (!device) {
-            //
-            // No more devices to try
-            //
-            clearTimeout(pingTimeoutHandler);
-            pingTimeoutHandler = null;
-            return;
+      } else {
+        if (data[i] == START_MSG) {
+          parsingMsg = true;
+          msgBytesRead = 0;
         }
+      }
+    }
+  }
 
-        console.log('Attempting connection with ' + device.id);
-        device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0 });
+  ext.analogRead = function(pin) {
+    return inputVals[pin];
+  };
 
-        //
-        // Look for "PONG" in our first response
-        // If we don't receive that, disconnect and try the next device.  If we do receive that, then update our receive handler
-        //
-        device.set_receive_handler(function(data) {
-            var inputData = new Uint8Array(data);
-            if (inputData[0] == 0x0F) {
-                connected = true;
-                console.log('Successfully connected to ' + device.id);
-                clearTimeout(pingTimeoutHandler);
-                pingTimeoutHandler = null;
-                device.set_receive_handler(function(data) {
-                    processSerialInput(data);
-                });
-            } 
-        });
+  ext.digitalRead = function(pin) {
+    if (inputVals[pin] > 0) return true;
+    return false;
+  };
+  
+  ext.analogWrite = function(pin, val) {
+    var output = new Uint8Array(3);
+    output[0] = 2;
+    output[1] = outputPins[pin];
+    output[2] = val;
+    device.send(output.buffer);
+  };
 
-        // Send a PING command to try and elicit a PING response (PONG)
-        var output = new Uint8Array([0xF0]);
-        device.send(output.buffer);
-/*
+  ext.digitalWrite = function(pin, val) {
+    var output = new Uint8Array(3);
+    output[0] = 3;
+    output[1] = outputPins[pin];
+    if (val === 'on')
+      output[2] = 1;
+    else
+      output[2] = 0;
+    device.send(output.buffer);
+  };
+
+  ext.whenAnalogRead = function(pin, op, val) {
+    if (op === '>')
+      return inputVals[pin] > val;
+    else if (op === '<')
+      return inputVals[pin] < val;
+    else if (op === '=')
+      return inputVals[pin] === val;
+    else
+      return false;
+  };
+
+  ext.whenDigitalRead = function(pin, val) {
+    if (val === 'on')
+      return ext.digitalRead(pin);
+    else
+      return ext.digitalRead(pin) === false;
+  };
+
+  ext.mapValues = function(val, aMin, aMax, bMin, bMax) {
+    var output = (((bMax - bMin) * (val - aMin)) / (aMax - aMin)) + bMin;
+    return Math.round(output);
+  };
+ 
+  ext._getStatus = function() {
+    if (!connected)
+      return { status:1, msg:'Disconnected' };
+    else
+      return { status:2, msg:'Connected' };
+  };
+
+  ext._deviceRemoved = function(dev) {
+    // Not currently implemented with serial devices
+  };
+
+  var poller = null;
+  ext._deviceConnected = function(dev) {
+    sendAttempts = 0;
+    connected = true;
+    if (device) return;
+    
+    device = dev;
+    device.open({ stopBits: 0, bitRate: 38400, ctsFlowControl: 0 });
+    device.set_receive_handler(function(data) {
+      sendAttempts = 0;
+      var inputData = new Uint8Array(data);
+      processInput(inputData);
+    }); 
+
     poller = setInterval(function() {
-      queryFirmware();
-    }, 1000);
-*/
-        // Set up a timeout to disconnect if we don't get a PING response
-        pingTimeoutHandler = setTimeout(function() {
-            console.log('Connection to ' + device.id + ' failed.  Trying next device.');
-            device.set_receive_handler(null);
-            device.close();
-            device = null;
-            tryNextDevice();
-        }, 5000);
-    }
 
-    // Cleanup function when the extension is unloaded
-     ext._shutdown = function() {
-         // TODO: Bring all pins down 
-        if (device) device.close();
+      /* TEMPORARY WORKAROUND
+         Since _deviceRemoved is not
+         called while using serial devices */
+      if (sendAttempts >= 10) {
+        connected = false;
+        device.close();
         device = null;
-    };  
+        clearInterval(poller);
+        return;
+      }
+      
+      device.send(pingCmd.buffer); 
+      sendAttempts++;
 
-    // Block and block menu descriptions
-    var descriptor = {
-        blocks: [
-            // Block type, block name, function name
-            [' ', 'my first block', 'my_first_block'],
-        ]
-    };
-    
-    // Connext to Arduino via Serial
-    var serial_info = {type: 'serial'};
-    
-    // Register the extension
-    ScratchExtensions.register('ScratchDuino', descriptor, ext, serial_info);
+    }, 50);
+
+  };
+
+  ext._shutdown = function() {
+    ext.digitalWrite(d2, 'off');
+    ext.digitalWrite(d3, 'off');
+    ext.digitalWrite(d5, 'off');
+    ext.digitalWrite(d9, 'off');
+    ext.digitalWrite(d10, 'off');
+    ext.digitalWrite(d11, 'off');
+    ext.digitalWrite(d12, 'off');
+    if (device) device.close();
+    if (poller) clearInterval(poller);
+    device = null;
+  };
+
+  var descriptor = {
+    blocks: [
+      [' ', 'set %m.outDPins %m.dOutp', 'digitalWrite', 'd1', 'on'],
+      [' ', 'set %m.outAPins to %n', 'analogWrite', 'd5', '255'],
+      ['b', 'read %m.inDPins', 'digitalRead', 'd0'],
+      ['r', 'read %m.inAPins', 'analogRead', 'a0'],
+      ['h', 'when %m.inDPins is %m.dOutp', 'whenDigitalRead', 'd0', 'on'],
+      ['h', 'when %m.inAPins is %m.ops %n', 'whenAnalogRead', 'a0', '>', '100'],
+      ['r', 'map %n from %n %n to %n %n', 'mapValues', 500, 0, 1023, 0, 255]
+    ],
+    menus: {
+      outDPins: ['d2', 'd3', 'd5', 'd9', 'd10', 'd11', 'd12'],
+      outAPins: ['d3', 'd5', 'd9', 'd10', 'd11', 'd12'],
+      inDPins: ['d0', 'a0', 'a1'],
+      inAPins: ['a0', 'a1'],
+      dOutp: ['on', 'off'],
+      ops: ['>', '=', '<']
+    },  
+    url: 'http://camstevens.github.io/arduino-extension'
+  };
+
+  ScratchExtensions.register('ScratchDuino', descriptor, ext, {type:'serial'});
+
 })({});
