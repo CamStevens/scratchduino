@@ -1,10 +1,11 @@
 (function(ext) {
     var device = null;
+    var connected = false;
     
     // Status reporting code
     // Use this to report missing hardware, plugin or unsupported browser
     ext._getStatus = function() {
-        if(!device) return {status: 1, msg: 'Device not connected'};
+        if(!connected) return {status: 1, msg: 'Device not connected'};
         return {status: 2, msg: 'Device connected'};
     }   
 
@@ -59,6 +60,7 @@
         device.set_receive_handler(function(data) {
             var inputData = new Uint8Array(data);
             if (inputData[0] == 'P' && inputData[1] == 'O' && inputData[2] == 'N' && inputData[3] == 'G') {
+                connected = true;
                 console.log('Successfully connected to ' + device.id);
                 clearTimeout(pingTimeoutHandler);
                 pingTimeoutHandler = null;
