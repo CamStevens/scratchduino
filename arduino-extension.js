@@ -91,65 +91,72 @@
     device.send(output.buffer);
   };
   
-  ext.stepMotor = function() {
-    switch (currentStep) {
-        case 0:
-          ext.digitalWrite(MOTOR_PIN_1, 'on');
-          ext.digitalWrite(MOTOR_PIN_2, 'off');
-          ext.digitalWrite(MOTOR_PIN_3, 'off');
-          ext.digitalWrite(MOTOR_PIN_4, 'off');
-          break;
-        case 1:
-          ext.digitalWrite(MOTOR_PIN_1, 'on');
-          ext.digitalWrite(MOTOR_PIN_2, 'on');
-          ext.digitalWrite(MOTOR_PIN_3, 'off');
-          ext.digitalWrite(MOTOR_PIN_4, 'off');
-          break;
-        case 2:
-          ext.digitalWrite(MOTOR_PIN_1, 'off');
-          ext.digitalWrite(MOTOR_PIN_2, 'on');
-          ext.digitalWrite(MOTOR_PIN_3, 'off');
-          ext.digitalWrite(MOTOR_PIN_4, 'off');
-          break;
-        case 3:
-          ext.digitalWrite(MOTOR_PIN_1, 'off');
-          ext.digitalWrite(MOTOR_PIN_2, 'on');
-          ext.digitalWrite(MOTOR_PIN_3, 'on');
-          ext.digitalWrite(MOTOR_PIN_4, 'off');
-          break;
-        case 4:
-          ext.digitalWrite(MOTOR_PIN_1, 'off');
-          ext.digitalWrite(MOTOR_PIN_2, 'off');
-          ext.digitalWrite(MOTOR_PIN_3, 'on');
-          ext.digitalWrite(MOTOR_PIN_4, 'off');
-          break;
-        case 5:
-          ext.digitalWrite(MOTOR_PIN_1, 'off');
-          ext.digitalWrite(MOTOR_PIN_2, 'off');
-          ext.digitalWrite(MOTOR_PIN_3, 'on');
-          ext.digitalWrite(MOTOR_PIN_4, 'on');
-          break;
-        case 6:
-          ext.digitalWrite(MOTOR_PIN_1, 'off');
-          ext.digitalWrite(MOTOR_PIN_2, 'off');
-          ext.digitalWrite(MOTOR_PIN_3, 'off');
-          ext.digitalWrite(MOTOR_PIN_4, 'on');
-          break;
-        case 7:
-          ext.digitalWrite(MOTOR_PIN_1, 'on');
-          ext.digitalWrite(MOTOR_PIN_2, 'off');
-          ext.digitalWrite(MOTOR_PIN_3, 'off');
-          ext.digitalWrite(MOTOR_PIN_4, 'on');
-          break;
-        default:
-          break;
-      }
-      currentStep += 1;
-      if (currentStep == 8) {
-        currentStep = 0;
-      } else if (currentStep == -1) {
-        currentStep = 7;
-      }    
+  ext.stepMotor = function(steps, direction) {
+    
+    for (i = 0; i < steps; i++) {
+      switch (currentStep) {
+          case 0:
+            ext.digitalWrite(MOTOR_PIN_1, 'on');
+            ext.digitalWrite(MOTOR_PIN_2, 'off');
+            ext.digitalWrite(MOTOR_PIN_3, 'off');
+            ext.digitalWrite(MOTOR_PIN_4, 'off');
+            break;
+          case 1:
+            ext.digitalWrite(MOTOR_PIN_1, 'on');
+            ext.digitalWrite(MOTOR_PIN_2, 'on');
+            ext.digitalWrite(MOTOR_PIN_3, 'off');
+            ext.digitalWrite(MOTOR_PIN_4, 'off');
+            break;
+          case 2:
+            ext.digitalWrite(MOTOR_PIN_1, 'off');
+            ext.digitalWrite(MOTOR_PIN_2, 'on');
+            ext.digitalWrite(MOTOR_PIN_3, 'off');
+            ext.digitalWrite(MOTOR_PIN_4, 'off');
+            break;
+          case 3:
+            ext.digitalWrite(MOTOR_PIN_1, 'off');
+            ext.digitalWrite(MOTOR_PIN_2, 'on');
+            ext.digitalWrite(MOTOR_PIN_3, 'on');
+            ext.digitalWrite(MOTOR_PIN_4, 'off');
+            break;
+          case 4:
+            ext.digitalWrite(MOTOR_PIN_1, 'off');
+            ext.digitalWrite(MOTOR_PIN_2, 'off');
+            ext.digitalWrite(MOTOR_PIN_3, 'on');
+            ext.digitalWrite(MOTOR_PIN_4, 'off');
+            break;
+          case 5:
+            ext.digitalWrite(MOTOR_PIN_1, 'off');
+            ext.digitalWrite(MOTOR_PIN_2, 'off');
+            ext.digitalWrite(MOTOR_PIN_3, 'on');
+            ext.digitalWrite(MOTOR_PIN_4, 'on');
+            break;
+          case 6:
+            ext.digitalWrite(MOTOR_PIN_1, 'off');
+            ext.digitalWrite(MOTOR_PIN_2, 'off');
+            ext.digitalWrite(MOTOR_PIN_3, 'off');
+            ext.digitalWrite(MOTOR_PIN_4, 'on');
+            break;
+          case 7:
+            ext.digitalWrite(MOTOR_PIN_1, 'on');
+            ext.digitalWrite(MOTOR_PIN_2, 'off');
+            ext.digitalWrite(MOTOR_PIN_3, 'off');
+            ext.digitalWrite(MOTOR_PIN_4, 'on');
+            break;
+          default:
+            break;
+        }
+        if (direction === 'clockwise') {
+          currentStep += 1;
+        } else {
+          currentStep -= 1;
+        }
+        if (currentStep == 8) {
+          currentStep = 0;
+        } else if (currentStep == -1) {
+          currentStep = 7;
+        }
+    }
   }
   
   ext.whenAnalogRead = function(pin, op, val) {
@@ -250,6 +257,7 @@
       [' ', 'set %m.outDPins %m.dOutp', 'digitalWrite', 'd1', 'on'],
       [' ', 'set %m.outAPins to %n', 'analogWrite', 'd5', '255'],
       [' ', 'set pixel %n to red:%n, green:%n, blue:%n', 'setPixelColor', 1, 255, 0, 0],
+      [' ', 'step motor %n steps %m.motorDirections', 'stepMotor', 1, 'clockwise'],
       ['b', 'read %m.inDPins', 'digitalRead', 'd0'],
       ['r', 'read %m.inAPins', 'analogRead', 'a0'],
       ['h', 'when %m.inDPins is %m.dOutp', 'whenDigitalRead', 'd0', 'on'],
@@ -262,7 +270,8 @@
       inDPins: ['d0', 'a0', 'a1'],
       inAPins: ['a0', 'a1'],
       dOutp: ['on', 'off'],
-      ops: ['>', '=', '<']
+      ops: ['>', '=', '<'],
+      motorDirections: ['clockwise', 'counterclockwise']
     },  
     url: 'http://camstevens.github.io/arduino-extension'
   };
