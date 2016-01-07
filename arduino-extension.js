@@ -48,7 +48,14 @@
     var pingTimeoutHandler = null;
     function tryNextDevice() {
         device = potentialDevices.shift();
-        if (!device) return;
+        if (!device) {
+            //
+            // No more devices to try
+            //
+            clearTimeout(pingTimeoutHandler);
+            pingTimeoutHandler = null;
+            return;
+        }
 
         device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0 });
         console.log('Attempting connection with ' + device.id);
