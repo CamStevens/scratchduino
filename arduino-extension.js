@@ -69,7 +69,8 @@
         });
 
         // Send a PING command to try and elicit a PING response (PONG)
-        device.write(0x01);
+        var output = new Uint8Array(['1']);
+        device.send(output.buffer);
 /*
     poller = setInterval(function() {
       queryFirmware();
