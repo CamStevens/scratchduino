@@ -218,7 +218,7 @@
       inAPins: ['a0', 'a1'],
       dOutp: ['on', 'off'],
       ops: ['>', '=', '<'],
-      motorSpeeds: ['slow', 'medium', 'fast'],
+      motorSpeeds: ['stop', 'slow', 'medium', 'fast'],
       motorDirections: ['clockwise', 'counterclockwise']
     },  
     url: 'http://camstevens.github.io/arduino-extension'
