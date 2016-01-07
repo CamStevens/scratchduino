@@ -105,6 +105,13 @@
     device.send(output.buffer);
   };
   
+  ext.stopMotor = function() {
+    var output = new Int8Array(2);
+    output[0] = 5;
+    output[1] = 0;
+    device.send(output.buffer);
+  };
+  
   ext.whenAnalogRead = function(pin, op, val) {
     if (op === '>')
       return inputVals[pin] > val;
@@ -204,7 +211,7 @@
       [' ', 'set %m.outAPins to %n', 'analogWrite', 'd5', '255'],
       [' ', 'set pixel %n to red:%n, green:%n, blue:%n', 'setPixelColor', 1, 255, 0, 0],
       [' ', 'start motor %m.motorSpeeds %m.motorDirections', 'stepMotor', 'slow', 'clockwise'],
-      [' ', 'stop motor', 'stepMotor', 'stop', 'clockwise'],
+      [' ', 'stop motor', 'stopMotor'],
       ['b', 'read %m.inDPins', 'digitalRead', 'd0'],
       ['r', 'read %m.inAPins', 'analogRead', 'a0'],
       ['h', 'when %m.inDPins is %m.dOutp', 'whenDigitalRead', 'd0', 'on'],
@@ -218,7 +225,7 @@
       inAPins: ['a0', 'a1'],
       dOutp: ['on', 'off'],
       ops: ['>', '=', '<'],
-      motorSpeeds: ['stop', 'slow', 'medium', 'fast'],
+      motorSpeeds: ['slow', 'medium', 'fast'],
       motorDirections: ['clockwise', 'counterclockwise']
     },  
     url: 'http://camstevens.github.io/arduino-extension'
