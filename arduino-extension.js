@@ -74,6 +74,16 @@
     device.send(output.buffer);
   };
 
+  ext.setPixelColor = function(pixel, red, green, blue) {
+    var output = new Uint8Array(5);
+    output[0] = 4;
+    output[1] = pixel;
+    output[2] = red;
+    output[3] = green;
+    output[4] = blue;
+    device.send(output.buffer);
+  };
+  
   ext.whenAnalogRead = function(pin, op, val) {
     if (op === '>')
       return inputVals[pin] > val;
@@ -150,6 +160,18 @@
     ext.digitalWrite(d10, 'off');
     ext.digitalWrite(d11, 'off');
     ext.digitalWrite(d12, 'off');
+    ext.setPixelColor(1, 0, 0, 0);
+    ext.setPixelColor(2, 0, 0, 0);
+    ext.setPixelColor(3, 0, 0, 0);
+    ext.setPixelColor(4, 0, 0, 0);
+    ext.setPixelColor(5, 0, 0, 0);
+    ext.setPixelColor(6, 0, 0, 0);
+    ext.setPixelColor(7, 0, 0, 0);
+    ext.setPixelColor(8, 0, 0, 0);
+    ext.setPixelColor(9, 0, 0, 0);
+    ext.setPixelColor(10, 0, 0, 0);
+    ext.setPixelColor(11, 0, 0, 0);
+    ext.setPixelColor(12, 0, 0, 0);
     if (device) device.close();
     if (poller) clearInterval(poller);
     device = null;
@@ -159,6 +181,7 @@
     blocks: [
       [' ', 'set %m.outDPins %m.dOutp', 'digitalWrite', 'd1', 'on'],
       [' ', 'set %m.outAPins to %n', 'analogWrite', 'd5', '255'],
+      [' ', 'set pixel %m.pixelNumber to red:%n, green:%n, blue:%n', 'setPixelColor', 1, 255, 0, 0],
       ['b', 'read %m.inDPins', 'digitalRead', 'd0'],
       ['r', 'read %m.inAPins', 'analogRead', 'a0'],
       ['h', 'when %m.inDPins is %m.dOutp', 'whenDigitalRead', 'd0', 'on'],
@@ -171,7 +194,8 @@
       inDPins: ['d0', 'a0', 'a1'],
       inAPins: ['a0', 'a1'],
       dOutp: ['on', 'off'],
-      ops: ['>', '=', '<']
+      ops: ['>', '=', '<'],
+      pixelNumber: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
     },  
     url: 'http://camstevens.github.io/arduino-extension'
   };
