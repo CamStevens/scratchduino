@@ -57,8 +57,8 @@
             return;
         }
 
-        device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0 });
         console.log('Attempting connection with ' + device.id);
+        device.open({ stopBits: 0, bitRate: 57600, ctsFlowControl: 0 });
 
         //
         // Look for "PONG" in our first response
