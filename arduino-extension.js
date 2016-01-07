@@ -79,7 +79,7 @@
         });
 
         // Send a PING command to try and elicit a PING response (PONG)
-        var output = new Uint8Array(['P']);
+        var output = new Uint8Array([0xF0]);
         device.send(output.buffer);
 /*
     poller = setInterval(function() {
