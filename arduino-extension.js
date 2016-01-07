@@ -181,7 +181,7 @@
     blocks: [
       [' ', 'set %m.outDPins %m.dOutp', 'digitalWrite', 'd1', 'on'],
       [' ', 'set %m.outAPins to %n', 'analogWrite', 'd5', '255'],
-      [' ', 'set pixel %m.pixelNumber to red:%n, green:%n, blue:%n', 'setPixelColor', 1, 255, 0, 0],
+      [' ', 'set pixel %n to red:%n, green:%n, blue:%n', 'setPixelColor', 1, 255, 0, 0],
       ['b', 'read %m.inDPins', 'digitalRead', 'd0'],
       ['r', 'read %m.inAPins', 'analogRead', 'a0'],
       ['h', 'when %m.inDPins is %m.dOutp', 'whenDigitalRead', 'd0', 'on'],
@@ -194,8 +194,7 @@
       inDPins: ['d0', 'a0', 'a1'],
       inAPins: ['a0', 'a1'],
       dOutp: ['on', 'off'],
-      ops: ['>', '=', '<'],
-      pixelNumber: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      ops: ['>', '=', '<']
     },  
     url: 'http://camstevens.github.io/arduino-extension'
   };
