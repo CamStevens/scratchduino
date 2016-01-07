@@ -66,8 +66,7 @@
         //
         device.set_receive_handler(function(data) {
             var inputData = new Uint8Array(data);
-            console.log('Received ' + inputData + ' from ' + device.id);
-            if (inputData[0] == 'P' && inputData[1] == 'O' && inputData[2] == 'N' && inputData[3] == 'G') {
+            if (inputData[0] == 0x0F) {
                 connected = true;
                 console.log('Successfully connected to ' + device.id);
                 clearTimeout(pingTimeoutHandler);
