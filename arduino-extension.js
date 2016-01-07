@@ -203,7 +203,7 @@
       [' ', 'set %m.outDPins %m.dOutp', 'digitalWrite', 'd1', 'on'],
       [' ', 'set %m.outAPins to %n', 'analogWrite', 'd5', '255'],
       [' ', 'set pixel %n to red:%n, green:%n, blue:%n', 'setPixelColor', 1, 255, 0, 0],
-      [' ', 'step motor %m.motorSpeeds %m.motorDirections', 'stepMotor', 'slow', 'clockwise'],
+      [' ', 'start motor %m.motorSpeeds %m.motorDirections', 'stepMotor', 'slow', 'clockwise'],
       [' ', 'stop motor', 'stepMotor', 'stop', 'clockwise'],
       ['b', 'read %m.inDPins', 'digitalRead', 'd0'],
       ['r', 'read %m.inAPins', 'analogRead', 'a0'],
