@@ -1,5 +1,6 @@
 (function(ext) {
-
+    var device = null;
+    
     // Status reporting code
     // Use this to report missing hardware, plugin or unsupported browser
     ext._getStatus = function() {
