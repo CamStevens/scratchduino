@@ -112,6 +112,20 @@
     device.send(output.buffer);
   };
   
+  ext.noteOn = function(note) {
+    var output = new Int8Array(2);
+    output[0] = 6;
+    output[1] = note;
+    device.send(output.buffer);
+  };
+  
+  ext.noteOff = function(note) {
+    var output = new Int8Array(2);
+    output[0] = 6;
+    output[1] = note;
+    device.send(output.buffer);
+  };
+  
   ext.whenAnalogRead = function(pin, op, val) {
     if (op === '>')
       return inputVals[pin] > val;
@@ -212,6 +226,8 @@
       [' ', 'set pixel %n to red:%n, green:%n, blue:%n', 'setPixelColor', 1, 255, 0, 0],
       [' ', 'start motor %m.motorSpeeds %m.motorDirections', 'stepMotor', 'slow', 'clockwise'],
       [' ', 'stop motor', 'stopMotor'],
+      [' ', 'turn on note %n', 'noteOn', '63'],
+      [' ', 'turn off note %n', 'noteOff', '63'],
       ['b', 'read %m.inDPins', 'digitalRead', 'd0'],
       ['r', 'read %m.inAPins', 'analogRead', 'a0'],
       ['h', 'when %m.inDPins is %m.dOutp', 'whenDigitalRead', 'd0', 'on'],
