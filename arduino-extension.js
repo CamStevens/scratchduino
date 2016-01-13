@@ -138,7 +138,7 @@
     device.send(output.buffer);
   };
   
-  ext.startPlayback = function() {
+  ext.playbackRecording = function() {
     var output = new Int8Array(1);
     output[0] = 10;
     device.send(output.buffer);
