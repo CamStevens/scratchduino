@@ -126,6 +126,24 @@
     device.send(output.buffer);
   };
   
+  ext.startRecording = function() {
+    var output = new Int8Array(1);
+    output[0] = 8;
+    device.send(output.buffer);
+  };
+  
+  ext.stopRecording = function() {
+    var output = new Int8Array(1);
+    output[0] = 9;
+    device.send(output.buffer);
+  };
+  
+  ext.startPlayback = function() {
+    var output = new Int8Array(1);
+    output[0] = 10;
+    device.send(output.buffer);
+  };
+  
   ext.whenAnalogRead = function(pin, op, val) {
     if (op === '>')
       return inputVals[pin] > val;
@@ -228,6 +246,9 @@
       [' ', 'stop motor', 'stopMotor'],
       [' ', 'turn on note %n', 'noteOn', '63'],
       [' ', 'turn off note %n', 'noteOff', '63'],
+      [' ', 'start recording', 'startRecording'],
+      [' ', 'stop recording', 'stopRecording'],
+      [' ', 'playback recording', 'playbackRecording'],
       ['b', 'read %m.inDPins', 'digitalRead', 'd0'],
       ['r', 'read %m.inAPins', 'analogRead', 'a0'],
       ['h', 'when %m.inDPins is %m.dOutp', 'whenDigitalRead', 'd0', 'on'],
