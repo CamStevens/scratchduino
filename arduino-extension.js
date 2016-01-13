@@ -208,7 +208,7 @@
       device.send(pingCmd.buffer); 
       sendAttempts++;
 
-    }, 50);
+    }, 1000);
 
   };
 
